@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Results - Multi-Document OCR</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        .status-processed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-needs-review {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-pending {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .card {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .card-body {
+            padding: 30px;
+        }
+        
+        .document-card {
+            background: white;
+            border-left: 5px solid #667eea;
+            margin-bottom: 25px;
+            border-radius: 8px;
+        }
+        
+        .document-card.emirates-id {
+            border-left-color: #3498db;
+        }
+        
+        .document-card.mulkiya {
+            border-left-color: #e67e22;
+        }
+        
+        .document-card.driving-license {
+            border-left-color: #9b59b6;
+        }
+        
+        .document-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .document-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+        }
+        
+        .document-title i {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .document-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .image-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .image-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .image-preview {
+            text-align: center;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .image-label {
+            margin-top: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .data-section {
+            margin-top: 20px;
+        }
+        
+        .data-section h6 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .data-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        
+        .data-label {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .data-value {
+            color: #2c3e50;
+            word-break: break-word;
+        }
+        
+        .errors-box {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .errors-box h6 {
+            color: #721c24;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .error-item {
+            color: #721c24;
+            margin-bottom: 5px;
+            padding-left: 20px;
+        }
+        
+        .error-item:before {
+            content: "✕ ";
+            font-weight: 700;
+            margin-right: 5px;
+        }
+        
+        .btn-back {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            color: #95a5a6;
+            margin-bottom: 15px;
+        }
+        
+        .raw-json {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <h1><i class="fas fa-check-circle"></i> Processing Complete</h1>
+            <p>Document ID: {{ document.id }}</p>
+            <span class="status-badge status-{{ document.status|lower }}">
+                <i class="fas fa-info-circle"></i> {{ document.get_status_display }}
+            </span>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <!-- Emirates ID Results -->
+                {% if "emirates_id" in document.submitted_documents %}
+                <div class="document-card emirates-id">
+                    <div class="document-header">
+                        <h5 class="document-title">
+                            <i class="fas fa-id-card"></i> Emirates ID
+                        </h5>
+                    </div>
+                    
+                    <div class="image-container">
+                        {% if document.emirates_id_front %}
+                        <div class="image-preview">
+                            <img src="{{ document.emirates_id_front.url }}" alt="Emirates ID Front">
+                            <div class="image-label"><i class="fas fa-image"></i> Front</div>
+                        </div>
+                        {% endif %}
+                        {% if document.emirates_id_back %}
+                        <div class="image-preview">
+                            <img src="{{ document.emirates_id_back.url }}" alt="Emirates ID Back">
+                            <div class="image-label"><i class="fas fa-image"></i> Back</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if document.parsed_data.emirates_id %}
+                    <div class="data-section">
+                        <h6><i class="fas fa-database"></i> Extracted Information</h6>
+                        <div class="data-grid">
+                            {% for key, value in document.parsed_data.emirates_id.items %}
+                                {% if key != "document_type" and value %}
+                                <div class="data-item">
+                                    <div class="data-label">{{ key|title }}</div>
+                                    <div class="data-value">{{ value }}</div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if document.validation_errors.emirates_id %}
+                    <div class="errors-box">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Validation Errors</h6>
+                        {% for error in document.validation_errors.emirates_id %}
+                        <div class="error-item">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Mulkiya Results -->
+                {% if "mulkiya" in document.submitted_documents %}
+                <div class="document-card mulkiya">
+                    <div class="document-header">
+                        <h5 class="document-title">
+                            <i class="fas fa-car"></i> Mulkiya
+                        </h5>
+                    </div>
+                    
+                    <div class="image-container">
+                        {% if document.mulkiya_front %}
+                        <div class="image-preview">
+                            <img src="{{ document.mulkiya_front.url }}" alt="Mulkiya Front">
+                            <div class="image-label"><i class="fas fa-image"></i> Front</div>
+                        </div>
+                        {% endif %}
+                        {% if document.mulkiya_back %}
+                        <div class="image-preview">
+                            <img src="{{ document.mulkiya_back.url }}" alt="Mulkiya Back">
+                            <div class="image-label"><i class="fas fa-image"></i> Back</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if document.parsed_data.mulkiya %}
+                    <div class="data-section">
+                        <h6><i class="fas fa-database"></i> Extracted Information</h6>
+                        <div class="data-grid">
+                            {% for key, value in document.parsed_data.mulkiya.items %}
+                                {% if key != "document_type" and value %}
+                                <div class="data-item">
+                                    <div class="data-label">{{ key|title }}</div>
+                                    <div class="data-value">{{ value }}</div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if document.validation_errors.mulkiya %}
+                    <div class="errors-box">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Validation Errors</h6>
+                        {% for error in document.validation_errors.mulkiya %}
+                        <div class="error-item">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Driving License Results -->
+                {% if "driving_license" in document.submitted_documents %}
+                <div class="document-card driving-license">
+                    <div class="document-header">
+                        <h5 class="document-title">
+                            <i class="fas fa-license"></i> Driving License
+                        </h5>
+                    </div>
+                    
+                    <div class="image-container">
+                        {% if document.driving_license_front %}
+                        <div class="image-preview">
+                            <img src="{{ document.driving_license_front.url }}" alt="Driving License Front">
+                            <div class="image-label"><i class="fas fa-image"></i> Front</div>
+                        </div>
+                        {% endif %}
+                        {% if document.driving_license_back %}
+                        <div class="image-preview">
+                            <img src="{{ document.driving_license_back.url }}" alt="Driving License Back">
+                            <div class="image-label"><i class="fas fa-image"></i> Back</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if document.parsed_data.driving_license %}
+                    <div class="data-section">
+                        <h6><i class="fas fa-database"></i> Extracted Information</h6>
+                        <div class="data-grid">
+                            {% for key, value in document.parsed_data.driving_license.items %}
+                                {% if key != "document_type" and value %}
+                                <div class="data-item">
+                                    <div class="data-label">{{ key|title }}</div>
+                                    <div class="data-value">{{ value }}</div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if document.validation_errors.driving_license %}
+                    <div class="errors-box">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Validation Errors</h6>
+                        {% for error in document.validation_errors.driving_license %}
+                        <div class="error-item">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <div style="margin-top: 30px; text-align: center;">
+                    <a href="{% url 'upload' %}" class="btn-back">
+                        <i class="fas fa-arrow-left"></i> Upload More Documents
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
